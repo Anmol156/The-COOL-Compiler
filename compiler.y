@@ -6,10 +6,10 @@
 	extern FILE *yyin;
 %}
    
-%token TRUE FALSE STRING INTEGER OB CB NOT EQ LET LTE LT COMP DIV OSB CSB OCB CCB SS COMMA COL ASSIGN AT DOT IF THEN ELSE FI WHILE LOOP POOL IN CASE OF TYPEOF ESAC NEW ISVOID SUB ADD MUL CLASS INHERITS TYPE ID
+%token TRUE FALSE STRING INTEGER OB CB NOT EQ LET LTE LT COMP DIV OCB CCB SS COMMA COL ASSIGN AT DOT IF THEN ELSE FI WHILE LOOP POOL IN CASE OF TYPEOF ESAC NEW ISVOID SUB ADD MUL CLASS INHERITS TYPE ID
 
 %% 
-stmt : program NL; #let's stick to using the augmented grammar
+stmt : program;
 features: feature SS features 
 		|
 		;
@@ -26,17 +26,21 @@ exprs: COMMA expr exprs
 		;
 program: classes
 		;
-class: CLASS TYPE OSB INHERITS TYPE CSB OCB features CCB
+class: CLASS TYPE INHERITS TYPE OCB features CCB
+		|
+		CLASS TYPE OCB features CCB 
 		;
-feature: ID OB OSB formal formals CSB CB COL TYPE OCB expr CCB
-		| ID COL TYPE OSB ASSIGN expr CSB
+feature:  ID OB formal formals CB COL TYPE OCB expr 		  CCB
+		| ID OB CB COL TYPE OCB expr CCB
+		| ID COL TYPE ASSIGN expr
+		| ID COL TYPE 
 		;
 formal: ID COL TYPE
 		;
 
 expressplus: expr SS expressplus | ;
 
-express: COMMA ID COL TYPE OSB ASSIGN expr CSB express|
+express: COMMA ID COL TYPE ASSIGN expr express|
 	;
 
 
@@ -44,17 +48,50 @@ cases: ID COL TYPE TYPEOF expr SS cases1;
 
 cases1: ID COL TYPE TYPEOF expr SS cases1 | ;
 
-expr : TRUE | FALSE | STRING | INTEGER | ID | OB expr CB |NOT expr | expr EQ expr | expr LTE expr | expr LT expr | COMP expr | expr DIV expr | expr MUL expr | expr SUB expr | expr ADD expr | ISVOID expr | NEW TYPE | CASE expr OF OSB cases ESAC| LET ID COL TYPE OSB ASSIGN expr CSB express in expr| OCB expressplus CCB| WHILE expr LOOP expr POOL| IF expr THEN expr ELSE expr FI | ID ASSIGN expr | expr OSB AT TYPE CSB DOT ID OB OSB expr exprs CSB CB | ID OB OSB expr exprs CSB CB ;
+expr : TRUE 
+	| FALSE 
+	| STRING 
+	| INTEGER 
+	| ID
+	 | OB expr CB 
+	 |NOT expr 
+	 | expr EQ expr 
+	 | expr LTE expr 
+	 | expr LT expr 
+	 | COMP expr 
+	 | expr DIV expr 
+	 | expr MUL expr 
+	 | expr SUB expr 
+	 | expr ADD expr 
+	 | ISVOID expr 
+	 | NEW TYPE 
+	 | CASE expr OF cases ESAC
+	 | LET ID COL TYPE ASSIGN expr express IN expr
+	 | LET ID COL TYPE express IN expr
+	 | OCB expressplus CCB
+	 | WHILE expr LOOP expr POOL
+	 | IF expr THEN expr ELSE expr FI 
+	 | ID ASSIGN expr 
+	 | expr AT TYPE DOT ID OB expr exprs CB 
+	 | expr DOT ID OB expr exprs CB
+	 | expr DOT ID OB CB
+	 | expr AT TYPE DOT ID OB CB
+	 | ID OB expr exprs CB
+	 | ID OB CB
+	  ;
 %%
 
 int yyerror(char *msg)
 {
-	printf("invalid expression\n");
+	printf("invalid expression\n problem yeh hai---> %s", msg);
 	return 1; 
 }
 
 void main()
 {
+	#ifdef YYDEBUG
+		yydebug = 1;
+	#endif
 	yyin=fopen("SampleInput.txt", "r");
 	do 
 	{
